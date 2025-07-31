@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord du Zoo</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; }
+        header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .container { display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; gap: 20px; }
+        .panel { background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; width: 45%; min-width: 400px; margin-bottom: 20px; }
+        h2 { border-bottom: 2px solid #3498db; padding-bottom: 10px; color: #2c3e50; }
+        ul { list-style-type: none; padding: 0; }
+        li { background-color: #ecf0f1; border-left: 5px solid #3498db; margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        li strong { color: #2980b9; }
+        .actions button { margin-left: 5px; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-heal { background-color: #2ecc71; color: white; }
+        .btn-delete { background-color: #e74c3c; color: white; }
+        form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        input, textarea, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        button[type="submit"] { background-color: #3498db; color: white; border: none; cursor: pointer; }
+        #auth-panel { width: 92%; }
+        #jwt-token { width: calc(100% - 22px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐘 Tableau de Bord du Zoo 🐅</h1>
+    </header>
+
+    <div class="container">
+        <div class="panel" id="auth-panel">
+            <h2>Authentification (JWT)</h2>
+            <p>Collez votre token JWT ici pour accéder aux fonctions sécurisées (gardien, vétérinaire).</p>
+            <textarea id="jwt-token" rows="4" placeholder="Collez votre token Bearer complet ici..."></textarea>
+            <button onclick="saveToken()">Sauvegarder le Token</button>
+            <p id="auth-status" style="color: green;"></p>
+        </div>
+
+        <div class="panel">
+            <h2>Habitats</h2>
+            <ul id="habitats-list"></ul>
+            <form id="habitat-form">
+                <h3>Ajouter un Habitat</h3>
+                <input type="text" id="habitat-name" placeholder="Nom de l'habitat" required>
+                <textarea id="habitat-description" placeholder="Description" required></textarea>
+                <button type="submit">Ajouter l'Habitat</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2>Animaux</h2>
+            <ul id="animaux-list"></ul>
+             <form id="animal-form">
+                <h3>Ajouter un Animal</h3>
+                <input type="text" id="animal-name" placeholder="Nom de l'animal" required>
+                <input type="text" id="animal-species" placeholder="Espèce" required>
+                <button type="submit">Ajouter l'Animal</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        
+        function saveToken() {
+            const token = document.getElementById('jwt-token').value;
+            if (token) {
+                localStorage.setItem('jwt_token', token);
+                document.getElementById('auth-status').textContent = "Token sauvegardé ! Vous pouvez maintenant utiliser les fonctions sécurisées.";
+            } else {
+                localStorage.removeItem('jwt_token');
+                document.getElementById('auth-status').textContent = "Token effacé.";
+            }
+        }
+
+        function getAuthHeader() {
+            const token = localStorage.getItem('jwt_token');
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        
+        async function apiFetch(endpoint, options = {}) {
+            const response = await fetch(`${API_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader(),
+                    ...options.headers,
+                }
+            });
+            if (!response.ok) {
+                alert(`Erreur API: ${response.status} - ${response.statusText}\nEndpoint: ${endpoint}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            }
+        }
+        
+        
+        const animauxList = document.getElementById('animaux-list');
+        const animalForm = document.getElementById('animal-form');
+
+        async function fetchAnimaux() {
+            try {
+                const animaux = await apiFetch('/animaux');
+                animauxList.innerHTML = '';
+                animaux.forEach(animal => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div>
+                            <strong>${animal.name}</strong> (${animal.species})<br>Santé: ${animal.health}%
+                        </div>
+                        <div class="actions">
+                            <button class="btn-heal" onclick="healAnimal(${animal.id})">Soigner</button>
+                            <button class="btn-delete" onclick="deleteAnimal(${animal.id})">Supprimer</button>
+                        </div>
+                    `;
+                    animauxList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Erreur animaux:', error);
+                animauxList.innerHTML = "<li>Impossible de charger les animaux.</li>";
+            }
+        }
+
+        animalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('animal-name').value;
+            const species = document.getElementById('animal-species').value;
+            try {
+                await apiFetch('/animaux', { method: 'POST', body: JSON.stringify({ name, species }) });
+                fetchAnimaux();
+                animalForm.reset();
+            } catch (error) { console.error('Erreur ajout animal:', error); }
+        });
+
+        async function healAnimal(id) {
+            if (!localStorage.getItem('jwt_token')) { alert('Veuillez fournir un token JWT pour soigner un animal.'); return; }
+            try {
+                await apiFetch(`/animaux/soigner/${id}`);
+                fetchAnimaux();
+            } catch (error) { console.error(`Erreur soin animal ${id}:`, error); }
+        }
+
+        async function deleteAnimal(id) {
+            if (!localStorage.getItem('jwt_token')) { alert('Veuillez fournir un token JWT pour supprimer un animal.'); return; }
+            try {
+                await apiFetch(`/animaux/${id}`, { method: 'DELETE' });
+                fetchAnimaux();
+            } catch (error) { console.error(`Erreur suppression animal ${id}:`, error); }
+        }
+
+        // --- GESTION DES HABITATS ---
+        const habitatsList = document.getElementById('habitats-list');
+        const habitatForm = document.getElementById('habitat-form');
+
+        async function fetchHabitats() {
+            try {
+                const habitats = await apiFetch('/habitats');
+                habitatsList.innerHTML = '';
+                habitats.forEach(habitat => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<div><strong>${habitat.name}</strong><br>${habitat.description}</div>`;
+                    habitatsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Erreur habitats:', error);
+                habitatsList.innerHTML = "<li>Impossible de charger les habitats.</li>";
+            }
+        }
+
+        habitatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('habitat-name').value;
+            const description = document.getElementById('habitat-description').value;
+            try {
+                await apiFetch('/habitats', { method: 'POST', body: JSON.stringify({ name, description }) });
+                fetchHabitats();
+                habitatForm.reset();
+            } catch (error) { console.error('Erreur ajout habitat:', error); }
+        });
+
+        // --- INITIALISATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchHabitats();
+            fetchAnimaux();
+        });
+    </script>
+
+</body>
+</html>
