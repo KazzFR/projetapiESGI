@@ -1,99 +1,129 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+\<p align="center"\>
+\<a href="[http://nestjs.com/](http://nestjs.com/)" target="blank"\>\<img src="[https://nestjs.com/img/logo-small.svg](https://nestjs.com/img/logo-small.svg)" width="120" alt="Nest Logo" /\>\</a\>
+\</p\>
+
+\<h1 align="center"\>API de Gestion de Zoo - Projet d'Évaluation Finale\</h1\>
+
+
+Une API backend robuste et sécurisée construite avec \<a href="[http://nodejs.org](http://nodejs.org)" target="\_blank"\>Node.js\</a\> et le framework NestJS.
+
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Ce projet a été développé dans le cadre d'une évaluation finale. Il s'agit d'une **API RESTful** complète pour la gestion d'un parc zoologique, incluant la gestion des animaux, des habitats et un système de sécurité basé sur les rôles (RBAC) via **Auth0**.
 
-## Project setup
+### Fonctionnalités Clés ✨
+
+  * **Gestion des Animaux et Habitats** : Endpoints CRUD complets pour les entités principales.
+  * **Sécurité Basée sur les Rôles (RBAC)** :
+      * Seuls les utilisateurs avec le rôle `gardien` peuvent supprimer des animaux.
+      * Seuls les utilisateurs avec le rôle `veterinaire` peuvent soigner des animaux.
+  * **Authentification JWT** : Routes sécurisées via des tokens JWT validés, fournis par Auth0.
+  * **Base de Données avec Docker** : Utilisation de PostgreSQL dans un conteneur Docker pour un environnement de développement propre et reproductible.
+  * **Documentation d'API Interactive** : Génération automatique d'une documentation Swagger accessible via `/api`.
+
+-----
+
+## Guide d'Installation et de Lancement 🚀
+
+Suivez ces étapes pour mettre en place et lancer le projet localement.
+
+### Prérequis
+
+Assurez-vous d'avoir les outils suivants installés sur votre machine :
+
+  * [Node.js](https://nodejs.org/) (version LTS recommandée)
+  * [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### 1\. Installation du projet
+
+Clonez le dépôt et installez les dépendances nécessaires.
 
 ```bash
+# Clonez le projet (si ce n'est pas déjà fait)
+ git clone https://github.com/KazzFR/projetapiESGI
+
+# Accédez au dossier du projet
+cd zoo-backend
+
+# Installez les dépendances
 $ npm install
 ```
 
-## Compile and run the project
+### 2\. Configuration de l'environnement
 
-```bash
-# development
-$ npm run start
+Créez un fichier `.env` à la racine du projet et remplissez-le avec vos propres clés Auth0 et les informations de la base de données.
 
-# watch mode
-$ npm run start:dev
+```env
+# Configuration de la base de données
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=docker
+DB_DATABASE=zoo
 
-# production mode
-$ npm run start:prod
+# Configuration Auth0
+# (Trouvées dans votre tableau de bord Auth0)
+AUTH0_AUDIENCE=http://localhost:3000
+AUTH0_ISSUER_URL=https://[VOTRE_DOMAIN_AUTH0]/
 ```
 
-## Run tests
+### 3\. Lancement de la base de données
+
+Lancez le conteneur PostgreSQL via Docker.
 
 ```bash
-# unit tests
+$ docker run --name zoo-postgres -e POSTGRES_PASSWORD=docker -e POSTGRES_USER=postgres -e POSTGRES_DB=zoo -p 5432:5432 -d postgres
+```
+
+### 4\. Lancement de l'application
+
+```bash
+# Mode développement avec rechargement automatique
+$ npm run start:dev
+
+# Mode production
+# $ npm run start:prod
+```
+
+L'application est maintenant en cours d'exécution sur `http://localhost:3000`.
+
+-----
+
+## Tester l'API 🧪
+
+La meilleure façon de tester l'API est d'utiliser l'interface `index.html` fournie à la racine du projet.
+
+1.  **Ouvrez le fichier `index.html`** dans votre navigateur. Vous devriez voir les listes d'animaux et d'habitats se charger.
+
+2.  **Test des routes non sécurisées** : Utilisez les formulaires sur la page pour ajouter un nouvel animal et un nouvel habitat. Ils devraient apparaître instantanément dans les listes.
+
+3.  **Test des routes sécurisées (Rôles)** :
+
+      * **Obtenez un Token Utilisateur** : Suivez la procédure pour générer un token pour un utilisateur (`gardien@zoo.com` par exemple) via le lien de connexion Auth0.
+      * **Authentifiez-vous** : Collez ce token dans le champ "Authentification (JWT)" de la page `index.html` et cliquez sur "Sauvegarder le Token".
+      * **Testez les Actions** :
+          * Si vous êtes connecté avec un token de **gardien**, cliquez sur "Supprimer". L'animal disparaîtra. Un clic sur "Soigner" provoquera une erreur.
+          * Si vous êtes connecté avec un token de **veterinaire**, cliquez sur "Soigner". La santé de l'animal sera mise à jour. Un clic sur "Supprimer" provoquera une erreur.
+
+L'API peut également être explorée via **Swagger** à l'adresse [http://localhost:3000/api](https://www.google.com/search?q=http://localhost:3000/api).
+
+-----
+
+## Commandes de Test (Optionnel)
+
+Le projet est configuré avec les scripts de test par défaut de NestJS.
+
+```bash
+# tests unitaires
 $ npm run test
 
-# e2e tests
+# tests de bout en bout (e2e)
 $ npm run test:e2e
 
-# test coverage
+# couverture de test
 $ npm run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
